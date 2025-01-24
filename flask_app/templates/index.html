@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask OpenCV with Taskbars</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #6DD5ED, #2193b0);
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            text-align: center;
+            padding: 40px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            border-bottom: 4px solid #4CAF50;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 3rem;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin: 40px 20px;
+        }
+
+        .video-section, .controls-section {
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .video-section img {
+            width: 100%;
+            max-width: 900px;
+            border-radius: 20px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .video-section img:hover {
+            transform: scale(1.05);
+        }
+
+        .controls-section {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .controls-section:hover {
+            box-shadow: 0px 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .controls-section h3 {
+            font-size: 1.8rem;
+            color: #4CAF50;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .controls-section label {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-right: 10px;
+            color: #333;
+        }
+
+        .controls-section input[type="range"] {
+            width: 100%;
+            max-width: 350px;
+            margin: 10px 0;
+            border-radius: 10px;
+            background-color: #e1e1e1;
+            appearance: none;
+            height: 10px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .controls-section input[type="range"]:hover {
+            background-color: #ddd;
+        }
+
+        .controls-section input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+
+        .controls-section input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+
+        .controls-section span {
+            font-size: 1.2rem;
+            color: #4CAF50;
+            margin-left: 10px;
+        }
+
+        .controls-section .value-container {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .value-container div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .value-container div span {
+            margin-top: 10px;
+        }
+
+        .button-container {
+            margin-top: 30px;
+        }
+
+        .reset-button {
+            background-color: #FF5733;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .reset-button:hover {
+            background-color: #c13f26;
+        }
+
+        .reset-button:focus {
+            outline: none;
+        }
+
+    </style>
+    <script>
+        function updateHSV() {
+            const formData = new FormData(document.getElementById("hsv-form"));
+            fetch('/set_hsv', {
+                method: 'POST',
+                body: formData
+            });
+        }
+
+        function showValue(sliderId, valueId) {
+            const slider = document.getElementById(sliderId);
+            const valueDisplay = document.getElementById(valueId);
+            valueDisplay.textContent = slider.value;
+        }
+    </script>
+</head>
+<body>
+
+<header>
+    <h1>Live Video Stream with Shape Detection</h1>
+</header>
+
+<div class="container">
+
+    <div class="video-section">
+        <h3 style="color: white; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);">Live Stream</h3>
+        <img src="{{ url_for('video_feed') }}" alt="Live Video Stream">
+    </div>
+
+    <div class="controls-section">
+        <h3>Adjust HSV Values</h3>
+        <form id="hsv-form" oninput="updateHSV()">
+            <div class="value-container">
+                <div>
+                    <label>L-H: 
+                        <input type="range" id="lh-slider" name="lh" min="0" max="179" value="0" 
+                               oninput="showValue('lh-slider', 'lh-value')">
+                    </label>
+                    <span id="lh-value">0</span>
+                </div>
+                <div>
+                    <label>L-S: 
+                        <input type="range" id="ls-slider" name="ls" min="0" max="255" value="0" 
+                               oninput="showValue('ls-slider', 'ls-value')">
+                    </label>
+                    <span id="ls-value">0</span>
+                </div>
+                <div>
+                    <label>L-V: 
+                        <input type="range" id="lv-slider" name="lv" min="0" max="255" value="0" 
+                               oninput="showValue('lv-slider', 'lv-value')">
+                    </label>
+                    <span id="lv-value">0</span>
+                </div>
+            </div>
+
+            <div class="value-container">
+                <div>
+                    <label>U-H: 
+                        <input type="range" id="uh-slider" name="uh" min="0" max="179" value="179" 
+                               oninput="showValue('uh-slider', 'uh-value')">
+                    </label>
+                    <span id="uh-value">179</span>
+                </div>
+                <div>
+                    <label>U-S: 
+                        <input type="range" id="us-slider" name="us" min="0" max="255" value="255" 
+                               oninput="showValue('us-slider', 'us-value')">
+                    </label>
+                    <span id="us-value">255</span>
+                </div>
+                <div>
+                    <label>U-V: 
+                        <input type="range" id="uv-slider" name="uv" min="0" max="255" value="255" 
+                               oninput="showValue('uv-slider', 'uv-value')">
+                    </label>
+                    <span id="uv-value">255</span>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <button type="reset" class="reset-button">Reset All</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+</body>
+</html>
